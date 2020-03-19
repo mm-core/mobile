@@ -1,7 +1,7 @@
 {
-	"name": "@mmstudio/base",
+	"name": "@mmstudio/mobile",
 	"version": "1.0.0",
-	"description": "$desc",
+	"description": "mobile framework",
 	"scripts": {
 		"test": "tsc && ava ./tests/*.js",
 		"watch": "tsc -w & ava --watch ./tests/*.js",
@@ -13,8 +13,9 @@
 	},
 	"repository": {
 		"type": "https+git",
-		"url": "https://github.com/mm-core/base.git"
+		"url": "https://github.com/mm-core/mobile.git"
 	},
+	"homepage": "https://mmstudio.gitee.io",
 	"main": "dist/index.js",
 	"module": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -29,8 +30,8 @@
 		"框架"
 	],
 	"author": {
-		"name": "$user",
-		"email": "$email@xxx.com"
+		"name": "taoqf",
+		"email": "tao_qiufeng@126.com"
 	},
 	"maintainers": [
 		{
@@ -39,8 +40,23 @@
 		}
 	],
 	"license": "MIT",
-	"dependencies": {},
+	"peerDependencies": {
+		"react": "*",
+		"react-native": "*",
+		"react-navigation": "*",
+		"react-navigation-tabs": "*"
+	},
+	"dependencies": {
+		"css-to-react-native-transform": "1.9.0",
+		"react-dom": "16.8.6",
+		"react-native-gesture-handler": "1.4.1",
+		"react-native-screens": "1.0.0-alpha.22",
+		"react-navigation": "4.0.10",
+		"react-navigation-stack": "1.10.2"
+	},
 	"devDependencies": {
+		"@types/react": "latest",
+		"@types/react-native": "latest",
 		"@typescript-eslint/eslint-plugin": "latest",
 		"@typescript-eslint/parser": "latest",
 		"ava": "latest",
@@ -48,6 +64,9 @@
 		"eslint": "latest",
 		"eslint-config-prettier": "latest",
 		"eslint-plugin-import": "latest",
+		"react": "latest",
+		"react-native": "latest",
+		"react-navigation-tabs": "latest",
 		"typescript": "next"
 	}
 }
