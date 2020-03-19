@@ -3,7 +3,7 @@ import { Image, ImageSourcePropType, ImageStyle, ImageURISource, NativeSynthetic
 import { NavigationInjectedProps } from 'react-navigation';
 import init_ai from './ai';
 import { add_accesibility_listener, add_back_listener, add_keyboard_listener, add_page_listener, add_state_listener } from './init-events';
-import { FD_EVENTS_DID_CATCH, FD_EVENTS_DID_MOUNT, FD_EVENTS_DID_UPDATE, FD_EVENTS_INIT, FD_EVENTS_WILL_MOUNT, FD_EVENTS_WILL_RECEIVE_PROPS, FD_EVENTS_WILL_UNMOUNT, FD_EVENTS_WILL_UPDATE, IActions, IEvents, IFeidaoAiMobile } from './interfaces';
+import { IActions, IAiMobile, IEvents, MM_EVENTS_DID_CATCH, MM_EVENTS_DID_MOUNT, MM_EVENTS_DID_UPDATE, MM_EVENTS_INIT, MM_EVENTS_WILL_MOUNT, MM_EVENTS_WILL_RECEIVE_PROPS, MM_EVENTS_WILL_UNMOUNT, MM_EVENTS_WILL_UPDATE } from './interfaces';
 import { trans_css } from './trans-css';
 
 interface IHandler {
@@ -162,7 +162,12 @@ function trans_option(options: Partial<IPageConfig>) {
 	} as INavagationOptions;
 }
 
-export default function init(global: { [key: string]: unknown; }, global_styles: { [name: string]: {}; }, actions: IActions, events: IEvents, tpl: (a: (action: string) => ((...args: unknown[]) => void), c: (...class_names: string[]) => Array<{}>, d: <T>(d: string) => T, fd: IFeidaoAiMobile) => ReactNode, page_config: Partial<IPageConfig>, styles: { [name: string]: {}; }) {
+export function a() {
+	return class extends Component<NavigationInjectedProps> {
+	};
+}
+
+export default function init(global: { [key: string]: unknown; }, global_styles: { [name: string]: {}; }, actions: IActions, events: IEvents, tpl: (a: (action: string) => ((...args: unknown[]) => void), c: (...class_names: string[]) => Array<{}>, d: <T>(d: string) => T, mm: IAiMobile) => ReactNode, page_config: Partial<IPageConfig>, styles: { [name: string]: {}; }) {
 	const emit = init_ai(actions, events);
 	const options = trans_option(page_config);
 	return class extends Component<NavigationInjectedProps> {
@@ -178,20 +183,20 @@ export default function init(global: { [key: string]: unknown; }, global_styles:
 				return this.fire_msg(event, ...args);
 			};
 			this.handlers.push(add_page_listener(fire_msg, this));
-			return this.fire_msg(FD_EVENTS_WILL_MOUNT);
+			return this.fire_msg(MM_EVENTS_WILL_MOUNT);
 		}
 		public componentWillUnmount() {
 			this.handlers.forEach((handler) => {
 				handler.destroy();
 			});
 			this.handlers = [];
-			return this.fire_msg(FD_EVENTS_WILL_UNMOUNT);
+			return this.fire_msg(MM_EVENTS_WILL_UNMOUNT);
 		}
 		public componentWillUpdate() {
-			return this.fire_msg(FD_EVENTS_WILL_UPDATE);
+			return this.fire_msg(MM_EVENTS_WILL_UPDATE);
 		}
 		public componentWillReceiveProps() {
-			return this.fire_msg(FD_EVENTS_WILL_RECEIVE_PROPS);
+			return this.fire_msg(MM_EVENTS_WILL_RECEIVE_PROPS);
 		}
 		public async componentDidMount() {
 			const fire_msg = (event: string, ...args: unknown[]) => {
@@ -202,14 +207,14 @@ export default function init(global: { [key: string]: unknown; }, global_styles:
 			this.handlers.push(add_back_listener(fire_msg));
 			this.handlers.push(add_accesibility_listener(fire_msg));
 			// this.handlers.push(add_netinfo_listener(fire_msg));
-			await this.fire_msg(FD_EVENTS_INIT, this.props, this.context);
-			return this.fire_msg(FD_EVENTS_DID_MOUNT);
+			await this.fire_msg(MM_EVENTS_INIT, this.props, this.context);
+			return this.fire_msg(MM_EVENTS_DID_MOUNT);
 		}
 		public componentDidCatch() {
-			return this.fire_msg(FD_EVENTS_DID_CATCH);
+			return this.fire_msg(MM_EVENTS_DID_CATCH);
 		}
 		public componentDidUpdate() {
-			return this.fire_msg(FD_EVENTS_DID_UPDATE);
+			return this.fire_msg(MM_EVENTS_DID_UPDATE);
 		}
 		public render() {
 			const dom = tpl((action: string, ...args: unknown[]) => {
@@ -240,5 +245,5 @@ export default function init(global: { [key: string]: unknown; }, global_styles:
 				page: this
 			}, event, ...args);
 		}
-	} as unknown as Component;
+	} as unknown as Component<NavigationInjectedProps>;
 }

@@ -6,7 +6,7 @@ import { SceneInterpolatorProps } from 'react-navigation-stack/lib/typescript/ty
 import { createBottomTabNavigator, createMaterialTopTabNavigator } from 'react-navigation-tabs';
 import init_ai from './ai';
 import { add_accesibility_listener, add_back_listener, add_keyboard_listener, add_state_listener } from './init-events';
-import { FD_EVENTS_DID_CATCH, FD_EVENTS_DID_MOUNT, FD_EVENTS_DID_UPDATE, FD_EVENTS_INIT, FD_EVENTS_WILL_MOUNT, FD_EVENTS_WILL_RECEIVE_PROPS, FD_EVENTS_WILL_UNMOUNT, FD_EVENTS_WILL_UPDATE, IActions, IEvents } from './interfaces';
+import { IActions, IEvents, MM_EVENTS_DID_CATCH, MM_EVENTS_DID_MOUNT, MM_EVENTS_DID_UPDATE, MM_EVENTS_INIT, MM_EVENTS_WILL_MOUNT, MM_EVENTS_WILL_RECEIVE_PROPS, MM_EVENTS_WILL_UNMOUNT, MM_EVENTS_WILL_UPDATE } from './interfaces';
 import { trans_css } from './trans-css';
 
 export interface IAppConfig {
@@ -101,23 +101,23 @@ export default function init(name: string, actions: IActions, events: IEvents, p
 		private local = {};
 		public constructor(props: NavigationInjectedProps, context?: unknown) {
 			super(props, context);
-			this.fire_msg(FD_EVENTS_INIT, props, context);
+			this.fire_msg(MM_EVENTS_INIT, props, context);
 		}
 		public componentWillMount() {
-			return this.fire_msg(FD_EVENTS_WILL_MOUNT);
+			return this.fire_msg(MM_EVENTS_WILL_MOUNT);
 		}
 		public componentWillUnmount() {
 			this.handlers.forEach((handler) => {
 				handler.destroy();
 			});
 			this.handlers = [];
-			return this.fire_msg(FD_EVENTS_WILL_UNMOUNT);
+			return this.fire_msg(MM_EVENTS_WILL_UNMOUNT);
 		}
 		public componentWillUpdate() {
-			return this.fire_msg(FD_EVENTS_WILL_UPDATE);
+			return this.fire_msg(MM_EVENTS_WILL_UPDATE);
 		}
 		public componentWillReceiveProps() {
-			return this.fire_msg(FD_EVENTS_WILL_RECEIVE_PROPS);
+			return this.fire_msg(MM_EVENTS_WILL_RECEIVE_PROPS);
 		}
 		public componentDidMount() {
 			const fire_msg = (event: string, ...args: unknown[]) => {
@@ -128,13 +128,13 @@ export default function init(name: string, actions: IActions, events: IEvents, p
 			this.handlers.push(add_back_listener(fire_msg));
 			this.handlers.push(add_accesibility_listener(fire_msg));
 			// this.handlers.push(add_netinfo_listener(fire_msg));
-			return this.fire_msg(FD_EVENTS_DID_MOUNT);
+			return this.fire_msg(MM_EVENTS_DID_MOUNT);
 		}
 		public componentDidCatch() {
-			return this.fire_msg(FD_EVENTS_DID_CATCH);
+			return this.fire_msg(MM_EVENTS_DID_CATCH);
 		}
 		public componentDidUpdate() {
-			return this.fire_msg(FD_EVENTS_DID_UPDATE);
+			return this.fire_msg(MM_EVENTS_DID_UPDATE);
 		}
 		public render() {
 			return createElement(app_container, null);

@@ -55,6 +55,7 @@
 		"react-navigation-stack": "1.10.2"
 	},
 	"devDependencies": {
+		"@babel/core": "latest",
 		"@types/react": "latest",
 		"@types/react-native": "latest",
 		"@typescript-eslint/eslint-plugin": "latest",
@@ -66,6 +67,8 @@
 		"eslint-plugin-import": "latest",
 		"react": "latest",
 		"react-native": "latest",
+		"react-native-reanimated": "latest",
+		"react-navigation": "latest",
 		"react-navigation-tabs": "latest",
 		"typescript": "next"
 	}
