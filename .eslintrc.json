@@ -5,6 +5,7 @@
 	},
 	"extends": [
 		"eslint:recommended",
+		"plugin:react/recommended",
 		"plugin:@typescript-eslint/recommended",
 		"plugin:@typescript-eslint/recommended-requiring-type-checking",
 		"plugin:@typescript-eslint/eslint-recommended",
@@ -25,9 +26,12 @@
 	},
 	"plugins": [
 		"import",
+		"react-hooks",
 		"@typescript-eslint"
 	],
 	"rules": {
+		"react-hooks/rules-of-hooks": "error",
+		"react-hooks/exhaustive-deps": "warn",
 		"arrow-parens": [
 			"off"
 		],

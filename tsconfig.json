@@ -1,7 +1,8 @@
 {
 	"exclude": [],
 	"include": [
-		"./src/**/*.ts"
+		"./src/**/*.ts",
+		"./src/**/*.tsx"
 	],
 	"compileOnSave": false,
 	"compilerOptions": {

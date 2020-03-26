@@ -1,248 +1,78 @@
-import { Component, createElement } from 'react';
-import { Animated, AppRegistry, Easing, FlexStyle, I18nManager, StyleProp, TextStyle, ViewStyle } from 'react-native';
-import { createAppContainer, NavigationInjectedProps } from 'react-navigation';
-import { createStackNavigator, StackViewStyleInterpolator } from 'react-navigation-stack';
-import { SceneInterpolatorProps } from 'react-navigation-stack/lib/typescript/types';
-import { createBottomTabNavigator, createMaterialTopTabNavigator } from 'react-navigation-tabs';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createStackNavigator } from '@react-navigation/stack';
+import { EventMapBase, NavigationContainer, NavigationState, ParamListBase, RouteConfig } from '@react-navigation/native';
+import { createElement, FunctionComponent, FunctionComponentElement, useCallback, useRef, useState } from 'react';
+import { AppRegistry } from 'react-native';
+import { PageConfig } from './page';
+import { IActions, IAiMobile, IEvents } from './interfaces';
 import init_ai from './ai';
-import { add_accesibility_listener, add_back_listener, add_keyboard_listener, add_state_listener } from './init-events';
-import { IActions, IEvents, MM_EVENTS_DID_CATCH, MM_EVENTS_DID_MOUNT, MM_EVENTS_DID_UPDATE, MM_EVENTS_INIT, MM_EVENTS_WILL_MOUNT, MM_EVENTS_WILL_RECEIVE_PROPS, MM_EVENTS_WILL_UNMOUNT, MM_EVENTS_WILL_UPDATE } from './interfaces';
-import { trans_css } from './trans-css';
+import trans_css from './trans-css';
+import { init_app_listener } from './init-events';
 
-export interface IAppConfig {
-	main_page: string;
-	tabs: {
-		tab_page: string;
-		pages: string[];
-		position?: 'top' | 'bottom';
-		active_tintColor?: string;
-		allow_font_scaling?: boolean;
-		active_background_color?: string;
-		inactive_tint_color?: string;
-		inactive_background_color?: string;
-		show_label?: boolean;
-		style?: string;
-		label_style?: string;
-		icon_style?: string;
-		show_icon?: boolean;
-		upper_case_label?: boolean;
-		press_color?: string;
-		press_opacity?: number;
-		scroll_enabled?: boolean;
-		tab_style?: string;
-		indicator_style?: string;
-	};
+export interface AppConfig {
+	initialRouteName?: string;
+	screenOptions?: object;
 }
 
-interface IHandler {
-	destroy(): void;
-}
-interface IPosition {
-	interpolate(opt: {
-		inputRange: number[];
-		outputRange: number[]
-	}): void;
-}
+type ParamList = ParamListBase;
+type Page = (Screen: (_: RouteConfig<ParamList, string, NavigationState, object, EventMapBase>) => null, global_styles: { [name: string]: {}; }) => FunctionComponentElement<{
+	name: string;
+	component: FunctionComponent;
+	options: PageConfig;
+} & PageConfig>;
 
-export default function init(name: string, actions: IActions, events: IEvents, pages: {
-	[routeName: string]: ((global: { [key: string]: unknown; }, styles: { [name: string]: StyleProp<FlexStyle>; }) => Component<NavigationInjectedProps>);
-}, app_config: IAppConfig, styles: { [name: string]: {}; }) {
-	const emit = init_ai(actions, events);
-	const global = {};
-	const page_names = Object.keys(pages);
-	const config = page_names.reduce((pre, cur) => {
-		pre[cur] = pages[cur](global, styles);
-		return pre;
-	}, {});
-	const tab_config = app_config.tabs;
-	const tab_pages = tab_config.pages.reduce((pre, page_name) => {
-		pre[page_name] = config[page_name];
-		return pre;
-	}, {} as { [name: string]: Component<NavigationInjectedProps> });
-	const tabBarOptions = {
-		activeBackgroundColor: tab_config.active_background_color,
-		activeTintColor: tab_config.active_tintColor,
-		allowFontScaling: tab_config.allow_font_scaling,
-		iconStyle: trans_css<StyleProp<ViewStyle>>(tab_config.icon_style),
-		inactiveBackgroundColor: tab_config.inactive_background_color,
-		inactiveTintColor: tab_config.inactive_tint_color,
-		indicatorStyle: trans_css<StyleProp<ViewStyle>>(tab_config.indicator_style),
-		labelStyle: trans_css<StyleProp<TextStyle>>(tab_config.label_style),
-		pressColor: tab_config.press_color,
-		pressOpacity: tab_config.press_opacity,
-		scrollEnabled: tab_config.scroll_enabled,
-		showIcon: tab_config.show_icon,
-		showLabel: tab_config.show_label,
-		style: trans_css<StyleProp<ViewStyle>>(tab_config.style),
-		tabStyle: trans_css<StyleProp<ViewStyle>>(tab_config.tab_style),
-		upperCaseLabel: tab_config.upper_case_label
-	};
-	const tabs = {
-		navigationOptions: {
-			header: null
-		},
-		screen: ((tab_config.position !== 'top') ? createBottomTabNavigator : createMaterialTopTabNavigator)(tab_pages, {
-			tabBarOptions
-		})
-	};
-	const all = createStackNavigator({
-		...config,
-		[app_config.tabs.tab_page]: tabs
-	}, {
-		headerMode: 'screen',
-		initialRouteName: app_config.main_page.replace(/-/g, '_'),
-		transitionConfig: TransitionConfiguration
-	});
-	const app_container = createAppContainer(all);
-
-	class App extends Component<NavigationInjectedProps> {
-		private handlers = [] as IHandler[];
-		private data = {};
-		private local = {};
-		public constructor(props: NavigationInjectedProps, context?: unknown) {
-			super(props, context);
-			this.fire_msg(MM_EVENTS_INIT, props, context);
-		}
-		public componentWillMount() {
-			return this.fire_msg(MM_EVENTS_WILL_MOUNT);
-		}
-		public componentWillUnmount() {
-			this.handlers.forEach((handler) => {
-				handler.destroy();
-			});
-			this.handlers = [];
-			return this.fire_msg(MM_EVENTS_WILL_UNMOUNT);
-		}
-		public componentWillUpdate() {
-			return this.fire_msg(MM_EVENTS_WILL_UPDATE);
-		}
-		public componentWillReceiveProps() {
-			return this.fire_msg(MM_EVENTS_WILL_RECEIVE_PROPS);
-		}
-		public componentDidMount() {
-			const fire_msg = (event: string, ...args: unknown[]) => {
-				return this.fire_msg(event, ...args);
-			};
-			this.handlers.push(add_keyboard_listener(fire_msg));
-			this.handlers.push(add_state_listener(fire_msg));
-			this.handlers.push(add_back_listener(fire_msg));
-			this.handlers.push(add_accesibility_listener(fire_msg));
-			// this.handlers.push(add_netinfo_listener(fire_msg));
-			return this.fire_msg(MM_EVENTS_DID_MOUNT);
-		}
-		public componentDidCatch() {
-			return this.fire_msg(MM_EVENTS_DID_CATCH);
-		}
-		public componentDidUpdate() {
-			return this.fire_msg(MM_EVENTS_DID_UPDATE);
-		}
-		public render() {
-			return createElement(app_container, null);
-		}
-		private fire_msg(event: string, ...args: unknown[]) {
-			return emit({
-				data: this.data,
-				emit,
-				global,
-				local: this.local,
-				page: this
-			}, event, ...args);
-		}
-	}
-	AppRegistry.registerComponent(name, () => App as unknown as typeof App);
-}
-
-// 实现定义某个页面的动画效果
-function TransitionConfiguration() {
-	return {
-		screenInterpolator: (sceneProps: SceneInterpolatorProps) => {
-			const { scene } = sceneProps;
-			const { route } = scene;
-			const params = (route as unknown as { params: { [key: string]: unknown } }).params || {};
-			const transition = (params.transition || 'forVertical') as string;
-			switch (transition) {
-				case 'forVerticalTop':
-					return forVerticalTop(sceneProps);
-				case 'forHorizontalLeft':
-					return forHorizontalLeft(sceneProps);
+export default function container(type: 'stack' | 'drawer' | 'bottom-tab' | 'material-bottom-tab' | 'material-top-tab', name: string, actions: IActions, events: IEvents, config: AppConfig, css: string, ...pages: Page[]) {
+	const global_styles = trans_css(css);
+	console.log('app');
+	function App() {
+		const Navigator = (() => {
+			switch (type) {
+				case 'stack':
+					return createStackNavigator();
+				case 'drawer':
+					return createDrawerNavigator();
+				case 'bottom-tab':
+					return createBottomTabNavigator();
+				case 'material-bottom-tab':
+					return createMaterialBottomTabNavigator();
+				case 'material-top-tab':
+					return createMaterialTopTabNavigator();
 				default:
-					{
-						const forVertical = StackViewStyleInterpolator[transition] as (sceneProps: SceneInterpolatorProps) => unknown;
-						return forVertical(sceneProps);
-					}
+					throw new Error('Incorrecte type');
 			}
-		},
-		transitionSpec: {
-			duration: 300,
-			easing: Easing.linear,
-			timing: Animated.timing
+		})();
+
+		const emit = init_ai(actions, events);
+		// this.handlers.push(add_keyboard_listener(fire_msg));
+		// this.handlers.push(add_state_listener(fire_msg));
+		// this.handlers.push(add_back_listener(fire_msg));
+		// this.handlers.push(add_accesibility_listener(fire_msg));
+		// // this.handlers.push(add_netinfo_listener(fire_msg));
+		const local = useRef({});
+		const [data, setData] = useState({});
+		function set_data<T>(key: string, value: T) {
+			setData({
+				...data,
+				[key]: value
+			});
 		}
+		const mm = {
+			emit,
+			local: local.current,
+			set_data
+		} as IAiMobile;
+		const fire_msg = useCallback((event: string, ...args: unknown[]) => {
+			return emit(mm, event, ...args);
+		}, [mm, emit]);
+		init_app_listener(fire_msg);
+		const children = pages.map((it) => {
+			return it(Navigator.Screen, global_styles);
+		});
+		const nav = createElement<AppConfig>(Navigator.Navigator as FunctionComponent, config, ...children);
+		return createElement(NavigationContainer, null, nav);
 	};
-}
-function forVerticalTop(sceneProps: SceneInterpolatorProps) {
-	const { layout, position, scene } = sceneProps;
-	const tmp_position = position as IPosition;
-	const index = scene.index;
-	const inputRange = [index - 1, index, index + 1];
-
-	const height = layout.initHeight;
-	const outputRange = !I18nManager.isRTL
-		? ([height, 0, -height * 0.3])
-		: ([-height, 0, height * -0.3]);
-	const opacity = tmp_position.interpolate({
-		inputRange: ([
-			index - 1,
-			index - 0.99,
-			index,
-			index + 0.99,
-			index + 1
-		]),
-		outputRange: ([0, 1, 1, 0.85, 0])
-	});
-
-	const translateX = 0;
-	const translateY = tmp_position.interpolate({
-		inputRange,
-		outputRange
-	});
-
-	return {
-		opacity,
-		transform: [{ translateX }, { translateY }]
-	};
-
-}
-function forHorizontalLeft(sceneProps: SceneInterpolatorProps) {
-	const { layout, position, scene } = sceneProps;
-	const tmp_position = position as IPosition;
-	const index = scene.index;
-	const inputRange = [index - 1, index, index + 1];
-
-	const width = layout.initWidth;
-	const outputRange = !I18nManager.isRTL
-		? ([width, 0, -width * 0.3])
-		: ([-width, 0, width * -0.3]);
-	// Add [index - 1, index - 0.99] to the interpolated opacity for screen transition.
-	// This makes the screen's shadow to disappear smoothly.
-	const opacity = tmp_position.interpolate({
-		inputRange: ([
-			index - 1,
-			index - 0.99,
-			index,
-			index + 0.99,
-			index + 1
-		]),
-		outputRange: ([0, 1, 1, 0.85, 0])
-	});
-
-	const translateY = 0;
-	const translateX = tmp_position.interpolate({
-		inputRange,
-		outputRange
-	});
-
-	return {
-		opacity,
-		transform: [{ translateX }, { translateY }]
-	};
+	AppRegistry.registerComponent(name, () => App);
 }

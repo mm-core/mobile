@@ -1,5 +1,5 @@
 import transform from 'css-to-react-native-transform';
 
-export function trans_css<T>(css?: string) {
-	return css ? transform(`.mm {${css}}`).mm as T : undefined as unknown as T;
+export default function trans_css<T = { [name: string]: {}; }>(css?: string) {
+	return css ? transform(css) as unknown as T : undefined as unknown as T;
 }
