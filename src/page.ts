@@ -14,7 +14,7 @@ import { init_page_events } from './init-events';
 
 export type PageConfig = StackNavigationOptions | DrawerNavigationOptions | BottomTabNavigationOptions | MaterialTopTabNavigationOptions | MaterialBottomTabNavigationOptions | MaterialTopTabBarOptions;
 
-export default function page(name: string, actions: IActions, events: IEvents, tpl: (a: (action: string, ...args: unknown[]) => (<T>(ev: NativeSyntheticEvent<T>) => void), c: (...class_names: string[]) => Array<{}>, d: <T>(d: string, v?: T) => T | undefined, mm: IAiMobile) => ReactNode, page_config: PageConfig, css: string) {
+export default function page(name: string, actions: IActions, events: IEvents, tpl: (a: (action: string, ...args: unknown[]) => (<T>(ev: NativeSyntheticEvent<T>) => void), c: (...class_names: string[]) => Array<{}>, d: <T>(d: string, v: T) => T, mm: IAiMobile) => ReactNode, page_config: PageConfig, css: string) {
 	const styles = trans_css(css);
 	return (Screen: (_: RouteConfig<ParamList, string, NavigationState, object, EventMapBase>) => null, global_styles: { [name: string]: {}; }) => {
 		const emit = init_ai(actions, events);
@@ -43,7 +43,7 @@ export default function page(name: string, actions: IActions, events: IEvents, t
 			}, [mm]);
 			const { navigation } = props;
 			init_page_events(navigation, fire_msg);
-			function d<T>(key: string, v?: T) {
+			function d<T>(key: string, v: T) {
 				return (data[key] as T) || v;
 			}
 			return tpl((action: string, ...args: unknown[]) => {
