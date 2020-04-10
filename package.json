@@ -1,6 +1,6 @@
 {
 	"name": "@mmstudio/mobile",
-	"version": "1.1.202003301554",
+	"version": "1.1.202004100813",
 	"description": "mobile framework",
 	"scripts": {
 		"test": "tsc && ava ./tests/*.js",
